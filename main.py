@@ -38,10 +38,16 @@ async def predict_species(input_data: IrisInput):
     #                          input_data.petal_width]])                              
     
     feature_names = ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm"]
-    input_df = pd.DataFrame([input_data.dict()], columns=feature_names)
+    input_df = pd.DataFrame([{
+        "SepalLengthCm": input_data.sepal_length,
+        "SepalWidthCm": input_data.sepal_width,
+        "PetalLengthCm": input_data.petal_length,
+        "PetalWidthCm": input_data.petal_width
+    }])
 
     #Predict using the model
     prediction = model.predict(input_df)[0] 
+    
 
     #Get the species name
     species = species_mapping.get(prediction, "Unknown")
