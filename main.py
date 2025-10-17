@@ -11,10 +11,10 @@ model = joblib.load("model.pk1")
 app = FastAPI()
 
 class IrisInput(BaseModel):
-    SepalLengthCm: float
-    SepalWidthCm: float
-    PetalLengthCm: float
-    PetalWidthCm: float
+    sepal_length: float
+    sepal_width: float
+    petal_length: float
+    petal_width: float
 
 species_mapping = {0: "Iris Setosa", 1: "Iris Versicolor", 2: "Iris Virginica"}
 
