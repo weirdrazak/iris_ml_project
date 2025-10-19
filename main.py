@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import joblib
 import numpy as np
@@ -10,6 +12,11 @@ model = joblib.load("model.pk1")
 
 app = FastAPI()
 
+# Mount static folder for serving static files like CSS and HTML
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+
 class IrisInput(BaseModel):
     sepal_length: float
     sepal_width: float
@@ -18,32 +25,27 @@ class IrisInput(BaseModel):
 
 species_mapping = {0: "Iris Setosa", 1: "Iris Versicolor", 2: "Iris Virginica"}
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def home():
-    """
-    Home endpoint to check if the server is running.
-    """  
-    return {"message": "Welcome to the Iris Species Predictor API"}
+    # Serve the home page
+    with open("static/index.html", "r") as file:
+        return file.read()
+    
+@app.get("/predict", response_class=HTMLResponse)
+async def predict():
+    # Serve the prediction page
+    with open("static/predict.html", "r") as file:
+        return file.read()
 
 @app.post("/predict")
-async def predict_species(input_data: IrisInput):
-    """
-    Predict endpoint to classify the Iris species.
-    Accepts JSON input and returns the predicted species.
-    """
-    # # Converts input data to numpy array
-    # input_array = np.array([[input_data.sepal_length,
-    #                          input_data.sepal_width,
-    #                          input_data.petal_length,
-    #                          input_data.petal_width]])                              
-    
+async def predict_species(
+    sepal_length: float = Form(...),
+    sepal_width: float = Form(...),
+    petal_length: float = Form(...),
+    petal_width: float = Form(...)):
+        
     feature_names = ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm"]
-    input_df = pd.DataFrame([{
-        "SepalLengthCm": input_data.sepal_length,
-        "SepalWidthCm": input_data.sepal_width,
-        "PetalLengthCm": input_data.petal_length,
-        "PetalWidthCm": input_data.petal_width
-    }])
+    input_df = pd.DataFrame([[sepal_length, sepal_width, petal_length, petal_width]], columns=feature_names)
 
     #Predict using the model
     prediction = model.predict(input_df)[0] 
