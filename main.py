@@ -6,6 +6,8 @@ import logging
 import joblib
 import numpy as np
 import pandas as pd
+import os
+import uvicorn
 
 
 # Configure logging
@@ -73,17 +75,21 @@ async def predict_species(
     feature_names = ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm"]
     try:
         input_df = pd.DataFrame([[sepal_length, sepal_width, petal_length, petal_width]], columns=feature_names)
+        logger.info("Input data received: %s", input_df)
 
-        #Predict using the model
-        
+        # Predict using the model
         prediction = model.predict(input_df)[0] 
         
 
-        #Get the species name
+        # Get the species name
         species = species_mapping.get(prediction, "Unknown")
+        logger.info("Prediction made: %s", species)
 
         return {"prediction": species}
     except Exception as e:
         logger.error("Error making prediction: %s", e)
         return JSONResponse(content={"error": "Failed to make a prediction"}, status_code=500)
 
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
